@@ -24,15 +24,20 @@ public class RpcServerChannelHandler extends SimpleChannelInboundHandler<ByteBuf
     @Autowired
     private InvokeHandler invokeHandler;
 
+
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) throws Exception {
         System.out.println("receive request from" + channelHandlerContext.channel().remoteAddress());
+
         byte[] request = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(request);
         RpcRequest rpcRequest = encodeExecutor.toRequest(request);
         RpcResult rpcResult = invokeHandler.invoke(rpcRequest);
         byte[] response = encodeExecutor.buildResponse(rpcResult);
         ChannelFuture cf = channelHandlerContext.writeAndFlush(Unpooled.copiedBuffer(response));
+
+        // 返回结果之后直接关闭
         cf.addListener(ChannelFutureListener.CLOSE);
+
     }
 
     @Override

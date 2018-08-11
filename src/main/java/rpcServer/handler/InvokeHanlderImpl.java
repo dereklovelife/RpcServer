@@ -9,6 +9,8 @@ import rpcServer.registry.ServiceRegistry;
 import java.lang.reflect.Method;
 
 /**
+ * 根据RpcRequest中的interface 和 method 找到对应的服务实现类
+ *
  * Created by Administrator on 2018/8/4.
  */
 
@@ -19,6 +21,7 @@ public class InvokeHanlderImpl implements InvokeHandler{
 
     public RpcResult invoke(RpcRequest rpcRequest) {
         RpcResult result = new RpcResult();
+
         if(rpcRequest == null) {
             result.setRetval("");
             result.setSuccess("F");
@@ -26,6 +29,7 @@ public class InvokeHanlderImpl implements InvokeHandler{
             return result;
         }
 
+        // 找到对应的服务实现类
         String interfaceType = rpcRequest.getInterfaceType();
         Object proxy = serviceRegistry.getProxyByInterface(interfaceType);
         if(proxy == null) {
@@ -35,6 +39,7 @@ public class InvokeHanlderImpl implements InvokeHandler{
         }
         Class interfaceClass = serviceRegistry.getClassByName(interfaceType);
 
+        // 根据对应的方法，invoke
         String methodName = rpcRequest.getMethodName();
         Method method = null;
         for(Method m: interfaceClass.getMethods()){
@@ -43,6 +48,8 @@ public class InvokeHanlderImpl implements InvokeHandler{
                 break;
             }
         }
+
+        // invoke
         try{
             Object invokeResult = method.invoke(proxy, rpcRequest.getArgs());
             result.setRetval(invokeResult);
